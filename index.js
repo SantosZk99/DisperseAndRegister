@@ -6,7 +6,7 @@ const { authenticate } = require("@google-cloud/local-auth");
 const { google } = require("googleapis");
 
 // If modifying these scopes, delete token.json.
-const SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"];
+const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
@@ -109,11 +109,45 @@ const writeData = async () => {
   const auth = await authorize();
   const sheets = google.sheets({ version: "v4", auth });
 
-  const res = await sheets.spreadsheets.create({ spreadsheetI });
+  const res = await sheets.spreadsheets.create({
+    // spreadsheetId: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+  });
 
   console.log(res.data.values);
 };
 
+/**
+ * Create a google spreadsheet
+ * @param {string} title Spreadsheets title
+ * @return {string} Created spreadsheets ID
+ */
+async function create(title) {
+  const { GoogleAuth } = require("google-auth-library");
+  const { google } = require("googleapis");
+
+  const auth = await authorize();
+
+  const service = google.sheets({ version: "v4", auth });
+
+  const resource = {
+    properties: {
+      title,
+    },
+  };
+  try {
+    const spreadsheet = await service.spreadsheets.create({
+      resource,
+      fields: "spreadsheetId",
+    });
+    console.log(`Spreadsheet ID: ${spreadsheet.data.spreadsheetId}`);
+    return spreadsheet.data.spreadsheetId;
+  } catch (err) {
+    // TODO (developer) - Handle exception
+    throw err;
+  }
+}
+create("Registry");
+
 // readData();
-writeData();
+// writeData();
 // authorize().then(listMajors).catch(console.error);
