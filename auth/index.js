@@ -3,6 +3,8 @@ const path = require("path");
 const process = require("process");
 
 const { authenticate } = require("@google-cloud/local-auth");
+const { google } = require("googleapis");
+
 // If modifying these scopes, delete token.json.
 const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
 // The file token.json stores the user's access and refresh tokens, and is
@@ -48,7 +50,7 @@ async function saveCredentials(client) {
  * Load or request or authorization to call APIs.
  *
  */
-export async function authorize() {
+async function authorize() {
   let client = await loadSavedCredentialsIfExist();
   if (client) {
     return client;
@@ -64,3 +66,5 @@ export async function authorize() {
   }
   return client;
 }
+
+module.exports = { authorize };

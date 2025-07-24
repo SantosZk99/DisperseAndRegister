@@ -1,5 +1,7 @@
 const { google } = require("googleapis");
 const { authorize } = require("./auth");
+const path = require("path");
+const fs = require("fs").promises;
 
 /**
  * Prints the names and majors of students in a sample spreadsheet:
@@ -72,14 +74,23 @@ async function create(title) {
       resource,
       fields: "spreadsheetId",
     });
+
     console.log(`Spreadsheet ID: ${spreadsheet.data.spreadsheetId}`);
+    const sheetData = { name: title, id: spreadsheet.data.spreadsheetId };
+
+    await fs.writeFile(
+      path.join(process.cwd(), `${title}.json`),
+      JSON.stringify(sheetData, null, 2)
+    );
+
     return spreadsheet.data.spreadsheetId;
   } catch (err) {
     // TODO (developer) - Handle exception
     throw err;
   }
 }
-create("Registry");
+
+create("Registry 5");
 
 // readData();
 // writeData();
