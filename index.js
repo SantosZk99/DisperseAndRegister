@@ -1,7 +1,20 @@
 const { google } = require("googleapis");
 const { authorize } = require("./auth");
 const path = require("path");
+const { auth } = require("google-auth-library");
+
 const fs = require("fs").promises;
+
+// Utils imports
+const { handleError } = require("./utils/handleError");
+
+const initAuth = async () => {
+  try {
+    return await authorize();
+  } catch (error) {
+    console.error("init auth error", error);
+  }
+};
 
 /**
  * Prints the names and majors of students in a sample spreadsheet:
@@ -30,19 +43,23 @@ async function listMajors(auth) {
 }
 
 const readData = async () => {
-  const auth = await authorize();
-  const sheets = google.sheets({ version: "v4", auth });
+  try {
+    const auth = await initAuth();
 
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-    range: "Class Data!A2:E",
-  });
+    const sheets = google.sheets({ version: "v4", auth });
 
-  console.log(res.data.values);
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+      range: "Class Data!A2:E",
+    });
+
+    // console.log(res.data.values);
+  } catch (error) {
+    handleError(error, readData);
+  }
 };
 
 const writeData = async () => {
-  const auth = await authorize();
   const sheets = google.sheets({ version: "v4", auth });
 
   const res = await sheets.spreadsheets.create({
@@ -59,8 +76,6 @@ const writeData = async () => {
  */
 async function create(title) {
   const { google } = require("googleapis");
-
-  const auth = await authorize();
 
   const service = google.sheets({ version: "v4", auth });
 
@@ -90,8 +105,8 @@ async function create(title) {
   }
 }
 
-create("Registry 5");
-
-// readData();
+// initAuth();
+readData();
 // writeData();
+// create("Registry 5");
 // authorize().then(listMajors).catch(console.error);
