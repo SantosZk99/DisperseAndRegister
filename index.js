@@ -16,7 +16,6 @@ const initAuth = async () => {
   }
 };
 
-
 /**
  * Prints the names and majors of students in a sample spreadsheet:
  * @see https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
@@ -52,25 +51,31 @@ const readData = async () => {
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
       range: "Class Data!A1:F5",
-
     });
-console.log("this is res")
-console.log("after res")
-	console.log(res.data.values);
 
+    console.log("this is res");
+    console.log("after res");
+    console.log(res.data.values);
   } catch (error) {
     handleError(error, readData);
   }
 };
 
 const writeData = async () => {
-  const sheets = google.sheets({ version: "v4", auth });
+  console.log("Writing Data");
 
-  const res = await sheets.spreadsheets.create({
-     spreadsheetId: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-  });
+  try {
+    const auth = await initAuth();
+    const sheets = google.sheets({ version: "v4", auth });
 
-  console.log(res.data.values);
+    const res = await sheets.spreadsheets.create({
+      spreadsheetId: "1LcfO2EWR8m11OQ56oQsb_jVXMcEsIz3stuvwRjC1D9E",
+    });
+
+    console.log(res.data.values);
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 /**
@@ -80,7 +85,7 @@ const writeData = async () => {
  */
 async function create(title) {
   const { google } = require("googleapis");
- const auth = await initAuth();
+  const auth = await initAuth();
   const service = google.sheets({ version: "v4", auth });
 
   const resource = {
@@ -99,7 +104,7 @@ async function create(title) {
 
     await fs.writeFile(
       path.join(process.cwd(), `${title}.json`),
-      JSON.stringify(sheetData, null, 2)
+      JSON.stringify(sheetData, null, 2),
     );
 
     return spreadsheet.data.spreadsheetId;
@@ -114,7 +119,3 @@ initAuth();
 writeData();
 // create("Registry 5");
 // authorize().then(listMajors).catch(console.error);
-
-
-
-
