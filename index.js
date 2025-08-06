@@ -16,32 +16,6 @@ const initAuth = async () => {
   }
 };
 
-/**
- * Prints the names and majors of students in a sample spreadsheet:
- * @see https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
- * @param {google.auth.OAuth2} auth The authenticated Google OAuth client.
- */
-async function listMajors(auth) {
-  const sheets = google.sheets({ version: "v4", auth });
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
-    range: "Class Data!A2:E",
-  });
-  const rows = res.data.values;
-
-  if (!rows || rows.length === 0) {
-    console.log("No data found.");
-    return;
-  }
-
-  console.log("Name, Major:");
-
-  rows.forEach((row) => {
-    // Print columns A and E, which correspond to indices 0 and 4.
-    console.log(`${row[0]}, ${row[4]}`);
-  });
-}
-
 const readData = async () => {
   try {
     const auth = await initAuth();
@@ -78,44 +52,115 @@ const writeData = async () => {
   }
 };
 
-/**
- * Create a google spreadsheet
- * @param {string} title Spreadsheets title
- * @return {string} Created spreadsheets ID
+/*
+ * Updates the Spreadsheet title. Finds and replaces a string in the sheets.
+ * @param {string} spreadsheetId The Spreadsheet to update
+ * @param {string} title The new Spreadsheet title
+ * @param {string} find The text to find
+ * @param {string} replacement The text to replace
+ * @return {obj} holding the information regarding the replacement of strings
  */
-async function create(title) {
+async function updateSheet(spreadsheetId, title, find, replacement) {
   const { google } = require("googleapis");
-  const auth = await initAuth();
+
+  const auth = await authorize();
+
   const service = google.sheets({ version: "v4", auth });
+  const requests = [];
 
-  const resource = {
-    properties: {
-      title,
+  // Change the spreadsheet's title.
+  requests.push({
+    updateSpreadsheetProperties: {
+      properties: {
+        title,
+      },
+      fields: "title",
     },
-  };
+  });
+  // Find and replace text.
+  requests.push({
+    findReplace: {
+      find,
+      replacement,
+      allSheets: true,
+    },
+  });
+  // Add additional requests (operations) ...
+  const batchUpdateRequest = { requests };
+
   try {
-    const spreadsheet = await service.spreadsheets.create({
-      resource,
-      fields: "spreadsheetId",
+    const response = await service.spreadsheets.batchUpdate({
+      spreadsheetId,
+      resource: batchUpdateRequest,
     });
-
-    console.log(`Spreadsheet ID: ${spreadsheet.data.spreadsheetId}`);
-    const sheetData = { name: title, id: spreadsheet.data.spreadsheetId };
-
-    await fs.writeFile(
-      path.join(process.cwd(), `${title}.json`),
-      JSON.stringify(sheetData, null, 2),
-    );
-
-    return spreadsheet.data.spreadsheetId;
+    const findReplaceResponse = response.data.replies[1].findReplace;
+    console.log(`${findReplaceResponse.occurrencesChanged} replacements made.`);
+    return response;
   } catch (err) {
     // TODO (developer) - Handle exception
     throw err;
   }
 }
 
-initAuth();
+/**
+ * Batch Updates values in a Spreadsheet.
+ * @param {string} spreadsheetId The spreadsheet ID.
+ * @param {string} range The range of values to update.
+ * @param {object} valueInputOption Value update options.
+ * @param {(string[])[]} _values A 2d array of values to update.
+ * @return {obj} spreadsheet information
+ */
+async function appendValues(spreadsheetId, range, valueInputOption, values) {
+  const { GoogleAuth } = require("google-auth-library");
+  const { google } = require("googleapis");
+
+  console.log(spreadsheetId, range, valueInputOption, values);
+
+  const auth = await authorize();
+  const service = google.sheets({ version: "v4", auth });
+
+  try {
+    const result = await service.spreadsheets.values.append({
+      spreadsheetId,
+      range,
+      valueInputOption,
+      resource: {
+        values,
+      },
+    });
+
+    console.log("%d cells updated.", result.data.totalUpdatedCells);
+    return result;
+  } catch (err) {
+    // TODO (developer) - Handle exception
+    throw err;
+  }
+}
+
+// initAuth();
+
 // readData();
-writeData();
-// create("Registry 5");
+// writeData();
+// create("FreshSheet");
+
+appendValues("1ayibLD7MVoiOQUMdCiyGl5ObarsIYGzx57umUWH3HG0", "A:A", "RAW", [
+  [23, "parsing"],
+  [23, "test"],
+  [23, "work"],
+  [23, "tuxedok"],
+]);
+
+// updateSheet(
+//"1ayibLD7MVoiOQUMdCiyGl5ObarsIYGzx57umUWH3HG0",
+//"RegistryNew",
+//"test",
+//"this is a test",
+//);
+
 // authorize().then(listMajors).catch(console.error);
+//
+//
+//
+//
+//
+// .
