@@ -8,14 +8,6 @@ const fs = require("fs").promises;
 // Utils imports
 const { handleError } = require("./utils/handleError");
 
-const initAuth = async () => {
-  try {
-    return await authorize();
-  } catch (error) {
-    console.error("init auth error", error);
-  }
-};
-
 const readData = async () => {
   try {
     const auth = await initAuth();
@@ -114,8 +106,6 @@ async function appendValues(spreadsheetId, range, valueInputOption, values) {
   const { GoogleAuth } = require("google-auth-library");
   const { google } = require("googleapis");
 
-  console.log(spreadsheetId, range, valueInputOption, values);
-
   const auth = await authorize();
   const service = google.sheets({ version: "v4", auth });
 
@@ -129,15 +119,14 @@ async function appendValues(spreadsheetId, range, valueInputOption, values) {
       },
     });
 
-    console.log("%d cells updated.", result.data.totalUpdatedCells);
+    console.log("cells updated.", result.config.data);
+    console.log("cells.", result.data.updates);
     return result;
   } catch (err) {
-    // TODO (developer) - Handle exception
+    console.error("appendValues", error);
     throw err;
   }
 }
-
-// initAuth();
 
 // readData();
 // writeData();
@@ -157,7 +146,6 @@ appendValues("1ayibLD7MVoiOQUMdCiyGl5ObarsIYGzx57umUWH3HG0", "A:A", "RAW", [
 //"this is a test",
 //);
 
-// authorize().then(listMajors).catch(console.error);
 //
 //
 //
