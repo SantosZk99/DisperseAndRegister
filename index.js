@@ -1,7 +1,6 @@
 const { google } = require("googleapis");
 const { authorize } = require("./auth");
 const path = require("path");
-const { auth } = require("google-auth-library");
 
 const fs = require("fs").promises;
 
@@ -10,7 +9,7 @@ const { handleError } = require("./utils/handleError");
 
 const readData = async () => {
   try {
-    const auth = await initAuth();
+    const auth = await authorize();
 
     const sheets = google.sheets({ version: "v4", auth });
 
@@ -27,31 +26,14 @@ const readData = async () => {
   }
 };
 
-const writeData = async () => {
-  console.log("Writing Data");
-
-  try {
-    const auth = await initAuth();
-    const sheets = google.sheets({ version: "v4", auth });
-
-    const res = await sheets.spreadsheets.create({
-      spreadsheetId: "1LcfO2EWR8m11OQ56oQsb_jVXMcEsIz3stuvwRjC1D9E",
-    });
-
-    console.log(res.data.values);
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 /*
+ * updateSheet
  * Updates the Spreadsheet title. Finds and replaces a string in the sheets.
  * @param {string} spreadsheetId The Spreadsheet to update
  * @param {string} title The new Spreadsheet title
  * @param {string} find The text to find
- * @param {string} replacement The text to replace
- * @return {obj} holding the information regarding the replacement of strings
- */
+ * @param {string} replacement The text to replace @return {obj} holding the information regarding the replacement of strings */
+
 async function updateSheet(spreadsheetId, title, find, replacement) {
   const { google } = require("googleapis");
 
@@ -69,6 +51,7 @@ async function updateSheet(spreadsheetId, title, find, replacement) {
       fields: "title",
     },
   });
+
   // Find and replace text.
   requests.push({
     findReplace: {
@@ -94,7 +77,8 @@ async function updateSheet(spreadsheetId, title, find, replacement) {
   }
 }
 
-/**
+/*
+ * appendValues
  * Batch Updates values in a Spreadsheet.
  * @param {string} spreadsheetId The spreadsheet ID.
  * @param {string} range The range of values to update.
@@ -107,6 +91,7 @@ async function appendValues(spreadsheetId, range, valueInputOption, values) {
   const { google } = require("googleapis");
 
   const auth = await authorize();
+
   const service = google.sheets({ version: "v4", auth });
 
   try {
@@ -123,29 +108,28 @@ async function appendValues(spreadsheetId, range, valueInputOption, values) {
     console.log("cells.", result.data.updates);
     return result;
   } catch (err) {
-    console.error("appendValues", error);
+    console.error("appendValues", err);
     throw err;
   }
 }
 
 // readData();
-// writeData();
 // create("FreshSheet");
-
-appendValues("1ayibLD7MVoiOQUMdCiyGl5ObarsIYGzx57umUWH3HG0", "A:A", "RAW", [
-  [23, "parsing"],
-  [23, "test"],
-  [23, "work"],
-  [23, "tuxedok"],
-]);
 
 // updateSheet(
 //"1ayibLD7MVoiOQUMdCiyGl5ObarsIYGzx57umUWH3HG0",
 //"RegistryNew",
 //"test",
 //"this is a test",
+//
 //);
 
+appendValues("1ayibLD7MVoiOQUMdCiyGl5ObarsIYGzx57umUWH3HG0", "A:A", "RAW", [
+  [23, "new"],
+  [23, "test"],
+  [23, "work"],
+  [23, "tuxedok"],
+]);
 //
 //
 //
