@@ -1,4 +1,5 @@
-const { authorize } = require("./auth");
+const { authorize } = require("../auth/index.js");
+const { google } = require("googleapis");
 
 /**
  * Create a google spreadsheet
@@ -6,10 +7,7 @@ const { authorize } = require("./auth");
  * @return {string} Created spreadsheets ID
  */
 const createSheet = async (title) => {
-  const { GoogleAuth } = require("google-auth-library");
-  const { google } = require("googleapis");
-
-  const auth = authorize();
+  const auth = await authorize();
 
   const service = google.sheets({ version: "v4", auth });
 
@@ -24,10 +22,10 @@ const createSheet = async (title) => {
       resource,
       fields: "spreadsheetId",
     });
+
     console.log(`Spreadsheet ID: ${spreadsheet.data.spreadsheetId}`);
     return spreadsheet.data.spreadsheetId;
   } catch (err) {
-    // TODO (developer) - Handle exception
     throw err;
   }
 };
